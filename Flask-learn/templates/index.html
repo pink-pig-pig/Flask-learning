@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block page_content %}
+<div class="container">
+<h1>
+Hello, {% if name %}{{name}}{% else %}stranger{% endif %}!
+</h1>
+</div>
+{{wtf.quick_form(form)}}
+{% endblock %}
+~                      
