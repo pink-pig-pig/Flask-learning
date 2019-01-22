@@ -6,6 +6,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_mail import Mail
 import os
 
 
@@ -15,11 +17,17 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Hard to guess string!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TSL'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 
 bootstrap = Bootstrap(app)
 moment    = Moment(app)
 db        = SQLAlchemy(app)
+migrate   = Migrate(app, db)
+mail      = Mail(app)
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -79,3 +87,8 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
                                                
+#添加一个集成Python shell
+
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, User=User, Role=Role)
