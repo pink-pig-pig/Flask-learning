@@ -8,6 +8,7 @@ from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_mail import Mail, Message
+from threading import Thread
 import os
 
 
@@ -99,11 +100,16 @@ def internal_server_error(e):
 def make_shell_context():
     return dict(db=db, User=User, Role=Role, mail=mail, Message=Message)
 
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
 def send_mail(to, subject, template, **kwargs):
     msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject,
                   sender=app.config['FLASKY_MAIL_SENDER'], recipients=[to])
     msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
+    thread   = Thread(target=send_async_email,args=[app, msg]) 
+    thread.start() 
 
-    mail.send(msg)
-
+    return thread
